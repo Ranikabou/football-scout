@@ -27,6 +27,48 @@ COMPETITION_MAP: dict[str, int] = {
     "ENG-FA WSL": 37,
 }
 
+# Hardcoded season name -> season_id mapping for StatsBomb open data.
+# sb.competitions() does not exist in statsbombpy>=1.0; season IDs are fixed
+# for the open-data repository and do not change.
+OPEN_DATA_SEASONS: dict[int, dict[str, int]] = {
+    11: {  # ESP-La Liga
+        "2017-18": 1,
+        "2018-19": 2,
+        "2019-20": 25,
+        "2020-21": 90,
+        "2021-22": 37,
+        "2022-23": 281,
+        "2023-24": 317,
+    },
+    2: {  # ENG-Premier League
+        "2003-04": 44,
+    },
+    9: {  # GER-Bundesliga
+        "2015-16": 27,
+    },
+    12: {  # ITA-Serie A
+        "2015-16": 27,
+    },
+    7: {  # FRA-Ligue 1
+        "2015-16": 27,
+    },
+    43: {  # FIFA World Cup
+        "2018": 3,
+        "2022": 106,
+    },
+    16: {  # UEFA Champions League
+        "2018-19": 4,
+        "2020-21": 90,
+        "2021-22": 37,
+    },
+    37: {  # ENG-FA WSL
+        "2018-19": 4,
+        "2019-20": 42,
+        "2020-21": 90,
+        "2021-22": 37,
+    },
+}
+
 
 class StatsBombAdapter(PlayerStatsAdapter):
     """Adapter for StatsBomb open/paid event data."""
@@ -65,31 +107,19 @@ class StatsBombAdapter(PlayerStatsAdapter):
             "minutes_played",
         ]
 
-    def _get_available_seasons(self, competition_id: int) -> list[dict]:
-        sb = self._get_sb()
-        try:
-            comps = sb.competitions()
-            available = comps[comps["competition_id"] == competition_id]
-            return available.to_dict("records")
-        except Exception as e:
-            logger.warning("Failed to fetch competitions: %s", e)
-            return []
+    def _get_available_seasons(self, competition_id: int) -> list[str]:
+        """Return the list of available season names for a competition using
+        the hardcoded open-data mapping (sb.competitions() does not exist in
+        current statsbombpy releases)."""
+        seasons_map = OPEN_DATA_SEASONS.get(competition_id, {})
+        return list(seasons_map.keys())
 
     def _find_season_id(
         self, competition_id: int, season: str
     ) -> int | None:
-        sb = self._get_sb()
-        try:
-            comps = sb.competitions()
-            match = comps[
-                (comps["competition_id"] == competition_id)
-                & (comps["season_name"] == season)
-            ]
-            if len(match) == 0:
-                return None
-            return int(match.iloc[0]["season_id"])
-        except Exception:
-            return None
+        """Look up the StatsBomb season_id from the hardcoded open-data mapping."""
+        seasons_map = OPEN_DATA_SEASONS.get(competition_id, {})
+        return seasons_map.get(season)
 
     def get_player_season_stats(
         self, league: str, season: str, min_minutes: int = 900
@@ -105,11 +135,10 @@ class StatsBombAdapter(PlayerStatsAdapter):
         season_id = self._find_season_id(competition_id, season)
         if season_id is None:
             available = self._get_available_seasons(competition_id)
-            season_names = [s.get("season_name", "?") for s in available]
             logger.warning(
                 "Season '%s' not available for %s in StatsBomb open data. "
                 "Available seasons: %s",
-                season, league, season_names,
+                season, league, available,
             )
             return pd.DataFrame()
 
