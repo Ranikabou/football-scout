@@ -26,25 +26,29 @@ class TestMetaEndpoints:
         resp = client.get("/api/meta/leagues")
         assert resp.status_code == 200
         data = resp.json()
-        assert "leagues" in data
-        assert isinstance(data["leagues"], list)
+        assert isinstance(data, list)
+        assert len(data) > 0
 
     def test_get_seasons(self, client):
         resp = client.get("/api/meta/seasons")
         assert resp.status_code == 200
-        assert "seasons" in resp.json()
+        assert isinstance(resp.json(), list)
 
     def test_get_positions(self, client):
         resp = client.get("/api/meta/positions")
         assert resp.status_code == 200
-        assert "positions" in resp.json()
+        data = resp.json()
+        assert isinstance(data, list)
+        assert all("group" in p and "positions" in p for p in data)
 
     def test_get_sources(self, client):
         resp = client.get("/api/meta/sources")
         assert resp.status_code == 200
-        sources = resp.json()["sources"]
-        assert "statsbomb" in sources
-        assert "understat" in sources
+        sources = resp.json()
+        assert isinstance(sources, list)
+        names = [s["name"] for s in sources]
+        assert "statsbomb" in names
+        assert "understat" in names
 
 
 class TestPlayerEndpoints:

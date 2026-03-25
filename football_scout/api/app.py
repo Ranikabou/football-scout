@@ -56,26 +56,32 @@ def create_app(config_path: str = "config.yaml") -> FastAPI:
 
     @app.get("/api/meta/leagues")
     async def get_leagues():
-        return {"leagues": config.get("leagues", [])}
+        # Frontend expects string[] directly
+        return config.get("leagues", [])
 
     @app.get("/api/meta/seasons")
     async def get_seasons():
-        return {"seasons": config.get("seasons", [])}
+        # Frontend expects string[] directly
+        return config.get("seasons", [])
 
     @app.get("/api/meta/positions")
     async def get_positions():
-        return {"positions": config.get("position_mapping", {})}
+        # Frontend expects PositionGroupInfo[]: [{group, positions}]
+        pos_map = config.get("position_mapping", {})
+        return [{"group": k, "positions": v} for k, v in pos_map.items()]
 
     @app.get("/api/meta/sources")
     async def get_sources():
-        sources = {}
+        # Frontend expects DataSource[]: [{name, status, last_refresh}]
+        result = []
         for source in ["statsbomb", "understat", "fbref", "transfermarkt"]:
             src_config = config.get(source, {})
-            sources[source] = {
-                "enabled": src_config.get("enabled", True),
-                "mode": src_config.get("mode", "default"),
-            }
-        return {"sources": sources}
+            result.append({
+                "name": source,
+                "status": "enabled" if src_config.get("enabled", True) else "disabled",
+                "last_refresh": "unknown",
+            })
+        return result
 
     @app.get("/health")
     async def health_check():

@@ -45,4 +45,5 @@ async def get_similar_players(
             "shared_features_pct": float(row.get("shared_features_pct", 0)),
         })
 
-    return {"similar_players": results}
+    # Frontend expects: { target: PlayerSummary, similar: SimilarPlayer[] }
+    return {"target": _row_to_summary(player), "similar": results}

@@ -97,6 +97,7 @@ def _row_to_detail(row: pd.Series) -> dict:
 
 @router.get("/players")
 async def list_players(
+    search: str | None = Query(None),
     league: str | None = Query(None),
     season: str | None = Query(None),
     position: str | None = Query(None),
@@ -108,6 +109,8 @@ async def list_players(
     if df.empty:
         return {"players": [], "total": 0}
 
+    if search and "player_name" in df.columns:
+        df = df[df["player_name"].str.contains(search, case=False, na=False)]
     if league and "league" in df.columns:
         df = df[df["league"].str.contains(league, case=False, na=False)]
     if season and "season" in df.columns:

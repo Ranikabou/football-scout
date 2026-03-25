@@ -56,4 +56,5 @@ async def get_clusters(position_group: str):
             top_metrics=top_metrics,
         ).model_dump())
 
-    return {"clusters": results, "position_group": position_group}
+    labels = list({r["cluster_label"] for r in results})
+    return {"clusters": results, "labels": labels, "position_group": position_group}

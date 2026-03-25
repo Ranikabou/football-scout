@@ -25,10 +25,12 @@ async def create_shortlist(query: ShortlistQuery, request: Request):
     config = getattr(request.app.state, "config", {})
 
     # Convert API query to internal query
+    # Frontend sends: [{metric, operator, value}] array; internal format is dict
     metric_thresholds = None
     if query.metric_thresholds:
         metric_thresholds = {
-            k: (v[0], float(v[1])) for k, v in query.metric_thresholds.items()
+            item.metric: (item.operator, float(item.value))
+            for item in query.metric_thresholds
         }
 
     scouting_query = ScoutingQuery(

@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 # Percentile tier thresholds
 TIER_THRESHOLDS = {
-    "Elite": 90,
-    "Green": 66,
-    "Amber": 33,
-    "Red": 0,
+    "elite": 90,
+    "green": 66,
+    "amber": 33,
+    "red": 0,
 }
 
 # Composite metrics for radar chart
@@ -31,14 +31,14 @@ RADAR_METRICS = [
 
 def _get_tier(pctl: float | None) -> str:
     if pctl is None or np.isnan(pctl):
-        return "Gray"
+        return "gray"
     if pctl >= 90:
-        return "Elite"
+        return "elite"
     if pctl >= 66:
-        return "Green"
+        return "green"
     if pctl >= 33:
-        return "Amber"
-    return "Red"
+        return "amber"
+    return "red"
 
 
 def _generate_radar_chart(
@@ -185,9 +185,9 @@ def generate_report(
     except Exception as e:
         logger.warning("Failed to find similar players: %s", e)
 
-    # Value assessment
+    # Value assessment — field names match frontend's ScoutingReport type
     value_assessment = {
-        "market_value_eur": float(player["market_value_eur"]) if pd.notna(player.get("market_value_eur")) else None,
+        "actual_value_eur": float(player["market_value_eur"]) if pd.notna(player.get("market_value_eur")) else None,
         "predicted_value_eur": float(player["predicted_value_eur"]) if pd.notna(player.get("predicted_value_eur")) else None,
         "value_ratio": float(player["value_ratio"]) if pd.notna(player.get("value_ratio")) else None,
         "undervalued": bool(player.get("undervalued", False)) if pd.notna(player.get("undervalued")) else False,

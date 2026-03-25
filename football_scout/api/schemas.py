@@ -38,13 +38,19 @@ class SimilarPlayer(BaseModel):
     shared_features_pct: float = 0.0
 
 
+class MetricThreshold(BaseModel):
+    metric: str
+    operator: str
+    value: float
+
+
 class ShortlistQuery(BaseModel):
     position_group: str
     max_age: int = 26
     min_minutes: int = 900
     leagues: list[str] | None = None
     max_market_value_eur: float | None = None
-    metric_thresholds: dict[str, list] | None = None  # {"npxg_p90": [">", 0.35]}
+    metric_thresholds: list[MetricThreshold] | None = None
     similarity_to: str | None = None
     undervalued_only: bool = False
     sort_by: str = "similarity_score"
