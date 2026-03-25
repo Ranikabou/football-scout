@@ -9,6 +9,9 @@ from pathlib import Path
 import click
 import yaml
 
+# Expose FastAPI app at module level so Railway/uvicorn can find it
+from football_scout.api.app import app  # noqa: F401
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
